@@ -1,0 +1,79 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+from scipy.stats import norm
+from sklearn.linear_model import LinearRegression
+
+# Carregando o Dados Base
+df = pd.read_csv('insurance.csv')
+
+# Variável escolhida para as análises de probabilidade (Idade)
+var_prob = df['age']
+
+# Função auxiliar para classificar o evento
+def classificar_evento(probabilidade):
+    if probabilidade < 0.10: return "Raro"
+    elif probabilidade < 0.50: return "Pouco provável"
+    elif probabilidade < 0.90: return "Provável"
+    else: return "Quase certo"
+
+# 01) Probabilidade acima da Mediana
+print("\n--- 1. PROBABILIDADE ACIMA DA MEDIANA (IDADE) ---")
+
+mediana = var_prob.median()
+media = var_prob.mean()
+desvio_padrao = var_prob.std(ddof=1)
+
+# Cálculo da probabilidade P(X > Mediana)
+prob_acima_med = 1 - norm.cdf(mediana, loc=media, scale=desvio_padrao)
+classificacao_1 = classificar_evento(prob_acima_med)
+
+print(f"Mediana: {mediana:.2f}")
+print(f"Probabilidade (> Mediana): {prob_acima_med:.4f} ({prob_acima_med*100:.2f}%)")
+print(f"Classificação: {classificacao_1}")
+print("Interpretação: Em uma distribuição normal, média e mediana são muito próximas, logo a probabilidade de um valor estar acima da mediana é de aproximadamente 50% (Provável).")
+
+# 02) Probabilidade no intervalo
+print("\n--- 2. PROBABILIDADE NO INTERVALO (MÉDIA ± 2 DESVIOS) ---")
+
+limite_inf = media - (2 * desvio_padrao)
+limite_sup = media + (2 * desvio_padrao)
+
+# Cálculo da probabilidade no intervalo
+prob_intervalo = norm.cdf(limite_sup, loc=media, scale=desvio_padrao) - norm.cdf(limite_inf, loc=media, scale=desvio_padrao)
+classificacao_2 = classificar_evento(prob_intervalo)
+
+print(f"Intervalo: [{limite_inf:.2f}, {limite_sup:.2f}]")
+print(f"Probabilidade (Intervalo): {prob_intervalo:.4f} ({prob_intervalo*100:.2f}%)")
+print(f"Classificação: {classificacao_2}")
+print("Interpretação: Pela regra empírica da estatística, cerca de 95% dos dados em uma distribuição normal caem dentro de 2 desvios-padrão da média (Quase certo).")
+
+# 3) MODELAGEM COM REGRESSÃO LINEAR
+print("\n--- 3. REGRESSÃO LINEAR (IDADE vs CUSTOS) ---")
+
+X = df[['age']]
+y = df['charges']
+
+modelo = LinearRegression()
+modelo.fit(X, y)
+y_pred = modelo.predict(X)
+
+coef_angular = modelo.coef_[0]
+coef_linear = modelo.intercept_
+
+print(f"Coeficiente Angular: {coef_angular:.2f}")
+print(f"Coeficiente Linear (Intercepto): {coef_linear:.2f}")
+print("Interpretação: O aprendizado de máquina identificou que, para cada 1 ano a mais de idade, os custos sobem em média $", round(coef_angular, 2))
+
+# Apresentação do Gráfico
+plt.figure(figsize=(8, 5))
+plt.scatter(X, y, color='blue', alpha=0.4, label='Dados Reais')
+plt.plot(X, y_pred, color='red', linewidth=2, label='Reta de Regressão')
+
+plt.title('Regressão Linear: Idade x Custos Médicos')
+plt.xlabel('Idade (Anos)')
+plt.ylabel('Custos (Charges)')
+plt.legend()
+plt.grid(True, linestyle='--', alpha=0.5)
+
+print("\nGerando gráfico...")
+plt.show()
