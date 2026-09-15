@@ -74,7 +74,7 @@ Kayo Henderson - RM: 570706
 ## Vídeo do projeto
 
 🎥 **Apresentação do projeto:**
-[Assista ao vídeo no YouTube](COLE_AQUI_O_LINK_DO_YOUTUBE)
+[Assista ao vídeo no YouTube](https://youtu.be/bprtyO7CVCg)
 
 ---
 
